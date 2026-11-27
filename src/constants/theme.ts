@@ -1,65 +1,69 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://unistyl.es/), etc.
+ * Design system Mongeton — couleurs issues du logo :
+ * vert profond (#164C28), or (#CCB068) et fond crème (#F6F4F0).
  */
-
-import '@/global.css';
-
-import { Platform } from 'react-native';
+export const Brand = {
+  green: '#164C28',
+  greenLight: '#2E7D4A',
+  gold: '#CCB068',
+  goldLight: '#E8D28E',
+  goldDark: '#A8843A',
+  cream: '#F6F4F0',
+} as const;
 
 export const Colors = {
   light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
+    text: '#14211A',
+    textSecondary: '#5F6B63',
+    background: Brand.cream,
+    card: '#FFFFFF',
+    border: '#E6E1D6',
+    primary: Brand.green,
+    onPrimary: '#FFFFFF',
+    accent: Brand.goldDark,
+    accentSoft: '#F3EBD3',
+    income: '#2E9E5B',
+    expense: '#C8413B',
+    transfer: '#3B7DD8',
   },
   dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+    text: '#F2EFE8',
+    textSecondary: '#A3ADA6',
+    background: '#0F1712',
+    card: '#18231C',
+    border: '#26352B',
+    primary: '#4FA36E',
+    onPrimary: '#FFFFFF',
+    accent: Brand.gold,
+    accentSoft: '#2A2717',
+    income: '#5CC98A',
+    expense: '#EF6B64',
+    transfer: '#6FA6EE',
   },
 } as const;
 
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
+export type Palette = { [K in keyof typeof Colors.light]: string };
 
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
-    mono: 'var(--font-mono)',
-  },
-});
+/** Montserrat (proche de la typographie du logo) pour titres, montants et boutons. */
+export const Fonts = {
+  medium: 'Montserrat_500Medium',
+  semiBold: 'Montserrat_600SemiBold',
+  bold: 'Montserrat_700Bold',
+} as const;
 
 export const Spacing = {
-  half: 2,
-  one: 4,
-  two: 8,
-  three: 16,
-  four: 24,
-  five: 32,
-  six: 64,
+  xs: 4,
+  sm: 8,
+  md: 16,
+  lg: 24,
+  xl: 32,
 } as const;
 
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
-export const MaxContentWidth = 800;
+export const Radius = {
+  sm: 12,
+  md: 16,
+  lg: 24,
+  full: 999,
+} as const;
+
+export const MaxContentWidth = 640;

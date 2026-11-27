@@ -41,3 +41,8 @@ example
 # generated native folders
 /ios
 /android
+/apk
+
+# Sorties de build des modules natifs locaux
+modules/*/android/build/
+modules/*/android/.cxx/

@@ -1,56 +1,102 @@
-# Welcome to your Expo app 👋
+<p align="center">
+  <img src="assets/images/og-fr.png" alt="Mongeton — Gestion financière individuelle" width="520" />
+</p>
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+# Mongeton
 
-## Get started
+Application mobile de gestion financière individuelle pour la Côte d'Ivoire et le Ghana :
+comptes Mobile Money (Orange Money, MTN MoMo, Wave, Moov, Telecel Cash), Visa, banque et espèces,
+en **FCFA, cedi, dollar ou euro**, en **français ou anglais**, avec un suivi des **dons religieux**
+(dîme, offrande, action de grâce).
 
-1. Install dependencies
+Version simplifiée inspirée de l'architecture d'[Ivy Wallet](https://github.com/Ivy-Apps/ivy-wallet),
+reconstruite en React Native (Expo) + Supabase.
 
-   ```bash
-   npm install
-   ```
+## Fonctionnalités
 
-2. Start the app
+- Comptes multi-devises avec logos des opérateurs du pays choisi
+- Dépenses, revenus, virements entre comptes (conversion de devise)
+- Solde total et résumé du mois dans la devise principale
+- Dons religieux : dîme conseillée (10 % des revenus), offrandes, actions de grâce
+- **Import de relevé CSV** (MoMo, Wave, banque, Excel) avec détection automatique des colonnes
+- **Détection Mobile Money** : lecture des notifications / SMS de confirmation (Android, avec autorisation)
+- Validation de chaque opération importée, anti-doublons côté base
+- Connexion email ou Google, données protégées par Row Level Security
 
-   ```bash
-   npx expo start
-   ```
+## Architecture
 
-In the output, you'll find options to open the app in a
+Mêmes couches qu'Ivy Wallet : **Data → Domain → UI**.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+| Dossier | Rôle |
+|---|---|
+| `src/data/` | Accès Supabase (repository), mappers, hooks React Query |
+| `src/domain/` | Logique métier pure et testée (devises, soldes, dons, pays, import) |
+| `src/features/` | Écrans par fonctionnalité, ViewModels `uiState` / `onEvent` |
+| `src/app/` | Routes Expo Router (fines, pointent vers `features/`) |
+| `src/components/` | Design system (couleurs du logo, Montserrat) |
+| `src/i18n/` | Traductions FR / EN typées |
+| `modules/mongeton-notifications/` | Module Android natif (lecture des notifications) |
+| `supabase/migrations/` | Schéma SQL, RLS, droits |
+| `plugins/` | Plugin Expo de signature release |
 
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Démarrer en local
 
-## Get a fresh project
-
-When you're ready, run:
+Prérequis : Node.js ≥ 22.13, Android SDK (pour l'émulateur / les builds).
 
 ```bash
-npm run reset-project
+npm install
+cp .env.example .env.local   # puis renseigner l'URL et la clé publishable Supabase
+npx expo start               # Expo Go (sans la détection Mobile Money)
+npm test                     # tests unitaires
+npm run typecheck && npx expo lint
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+Base de données : exécuter les fichiers de `supabase/migrations/` dans l'ordre (SQL Editor de Supabase).
 
-### Other setup steps
+## Publication et mises à jour automatiques
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+Chaque **tag `vX.Y.Z`** déclenche [GitHub Actions](.github/workflows/release-android.yml) :
+tests → APK signé → **GitHub Release**. Sur le téléphone, l'app gratuite
+[Obtainium](https://github.com/ImranR98/Obtainium) suit ces Releases et installe les mises à jour.
 
-## Learn more
+### Configuration unique (Settings → Secrets and variables → Actions)
 
-To learn more about developing your project with Expo, look at the following resources:
+| Type | Nom | Valeur |
+|---|---|---|
+| Secret | `ANDROID_KEYSTORE_BASE64` | `base64 -w0 ~/.mongeton/mongeton-release.jks` |
+| Secret | `MONGETON_KEYSTORE_PASSWORD` | dans `~/.mongeton/release-signing.env` |
+| Secret | `MONGETON_KEY_PASSWORD` | dans `~/.mongeton/release-signing.env` |
+| Variable | `MONGETON_KEY_ALIAS` | `mongeton` |
+| Variable | `EXPO_PUBLIC_SUPABASE_URL` | URL du projet Supabase |
+| Variable | `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | clé *publishable* (publique par conception) |
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+> La clé de signature (`~/.mongeton/`) ne doit **jamais** être commitée ni perdue :
+> sans elle, les téléphones refuseront les mises à jour. Garde une copie de sauvegarde.
 
-## Join the community
+### Publier une nouvelle version
 
-Join our community of developers creating universal apps.
+```bash
+# 1. Incrémenter "version" et "android.versionCode" dans app.json
+# 2. Commit puis tag
+git commit -am "Mongeton 1.3.0"
+git tag v1.3.0
+git push && git push --tags
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### Installer et recevoir les mises à jour (téléphone Android)
+
+1. Installer **Obtainium** (depuis ses Releases GitHub ou F-Droid).
+2. *Add App* → URL : `https://github.com/SERGELEBON/mongeton` → *Add*.
+3. Obtainium installe Mongeton puis vérifie les nouvelles versions en arrière-plan.
+
+### Build local signé
+
+```bash
+set -a; . ~/.mongeton/release-signing.env; set +a
+npx expo prebuild --platform android
+cd android && ./gradlew assembleRelease
+```
+
+## Licence
+
+Projet privé — tous droits réservés.
