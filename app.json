@@ -48,6 +48,13 @@
       ],
       "expo-sqlite",
       "expo-localization",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/android-icon-monochrome.png",
+          "color": "#164C28"
+        }
+      ],
       "./plugins/with-release-signing"
     ],
     "experiments": {

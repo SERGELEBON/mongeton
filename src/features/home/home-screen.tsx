@@ -53,8 +53,8 @@ export function HomeScreen() {
           {s.totalText}
         </AppText>
         <View style={styles.monthRow}>
-          <MonthStat icon="arrow-down" label={t.home.income} value={s.monthIncomeText} />
-          <MonthStat icon="arrow-up" label={t.home.expense} value={s.monthExpenseText} />
+          <MonthStat icon="arrow-down" tone="income" label={t.home.income} value={s.monthIncomeText} />
+          <MonthStat icon="arrow-up" tone="expense" label={t.home.expense} value={s.monthExpenseText} />
         </View>
         <AppText variant="caption" style={{ color: 'rgba(255,255,255,0.7)' }}>
           {t.home.thisMonth}
@@ -108,11 +108,24 @@ export function HomeScreen() {
   );
 }
 
-function MonthStat({ icon, label, value }: { icon: IconName; label: string; value: string }) {
+/** Revenus en vert, dépenses en rouge : lisible d'un coup d'œil sur la carte verte. */
+const MONTH_STAT_COLORS = { income: '#3DBE77', expense: '#E5484D' } as const;
+
+function MonthStat({
+  icon,
+  tone,
+  label,
+  value,
+}: {
+  icon: IconName;
+  tone: keyof typeof MONTH_STAT_COLORS;
+  label: string;
+  value: string;
+}) {
   return (
     <View style={styles.monthStat}>
-      <View style={styles.monthIcon}>
-        <Ionicons name={icon} size={14} color={Brand.green} />
+      <View style={[styles.monthIcon, { backgroundColor: MONTH_STAT_COLORS[tone] }]}>
+        <Ionicons name={icon} size={14} color="#FFFFFF" />
       </View>
       <View style={{ flexShrink: 1 }}>
         <AppText variant="caption" style={{ color: 'rgba(255,255,255,0.75)' }}>
@@ -190,7 +203,6 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 13,
-    backgroundColor: Brand.goldLight,
     alignItems: 'center',
     justifyContent: 'center',
   },

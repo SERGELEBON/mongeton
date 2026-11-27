@@ -12,6 +12,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo, useState } from 'react';
 
 import { Colors, Fonts } from '@/constants/theme';
+import { ChallengeEngine } from '@/features/challenge/challenge-engine';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useI18n } from '@/i18n';
 import { AuthProvider, useAuth } from '@/providers/auth';
@@ -40,6 +41,7 @@ function RootNavigator({ fontsReady }: { fontsReady: boolean }) {
   return (
     <>
       <ProfileSync />
+      {session ? <ChallengeEngine /> : null}
       <Stack
         screenOptions={{
           headerShown: false,
@@ -62,6 +64,7 @@ function RootNavigator({ fontsReady }: { fontsReady: boolean }) {
           <Stack.Screen name="transaction/new" options={modal(t.transaction.title)} />
           <Stack.Screen name="account/new" options={modal(t.accounts.newTitle)} />
           <Stack.Screen name="import/review" options={modal(t.imports.title)} />
+          <Stack.Screen name="challenge/new" options={modal(t.challenge.new)} />
         </Stack.Protected>
       </Stack>
     </>

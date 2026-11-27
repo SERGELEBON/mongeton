@@ -19,7 +19,10 @@ import {
 import type {
   AccountWithBalance,
   Category,
+  Challenge,
+  ChallengeAlert,
   ImportedTransaction,
+  NewChallenge,
   NewAccount,
   NewTransaction,
   Profile,
@@ -117,6 +120,85 @@ export async function importTransactions(rows: ImportedTransaction[]): Promise<n
 
 export async function deleteTransaction(id: string): Promise<void> {
   checkWrite(await supabase.from('transactions').delete().eq('id', id));
+}
+
+/** Toutes les opérations depuis une date (stats, challenges) — plafonné à 5 000 lignes. */
+export async function listTransactionsSince(fromIso: string): Promise<Transaction[]> {
+  const rows = check(
+    await supabase
+      .from('transactions')
+      .select('id, type, account_id, amount, to_account_id, to_amount, category_id, title, note, occurred_at')
+      .gte('occurred_at', fromIso)
+      .order('occurred_at', { ascending: false })
+      .limit(5000)
+      .returns<TransactionRow[]>()
+  );
+  return rows.map(toTransaction);
+}
+
+// ---------- Challenges ----------
+type ChallengeRow = Omit<Challenge, 'amount'> & { amount: number | string };
+
+export async function listChallenges(): Promise<Challenge[]> {
+  const rows = check(
+    await supabase
+      .from('challenges')
+      .select('id, name, period, amount, category_id, active')
+      .order('created_at')
+      .returns<ChallengeRow[]>()
+  );
+  return rows.map((r) => ({ ...r, amount: Number(r.amount) }));
+}
+
+export async function createChallenge(input: NewChallenge): Promise<void> {
+  checkWrite(await supabase.from('challenges').insert(input));
+}
+
+export async function setChallengeActive(id: string, active: boolean): Promise<void> {
+  checkWrite(await supabase.from('challenges').update({ active }).eq('id', id));
+}
+
+export async function deleteChallenge(id: string): Promise<void> {
+  checkWrite(await supabase.from('challenges').delete().eq('id', id));
+}
+
+/**
+ * Enregistre les alertes franchies. Grâce à la contrainte unique (challenge, période, niveau),
+ * seules les NOUVELLES alertes sont renvoyées : ce sont elles qu'on notifie.
+ */
+export async function raiseChallengeAlerts(
+  rows: { challenge_id: string; period_start: string; level: 'warning' | 'exceeded'; spent: number }[]
+): Promise<ChallengeAlert[]> {
+  if (!rows.length) return [];
+  const { data, error } = await supabase
+    .from('challenge_alerts')
+    .upsert(rows, { onConflict: 'challenge_id,period_start,level', ignoreDuplicates: true })
+    .select('id, challenge_id, period_start, level, spent, created_at, read_at');
+  if (error) throw new Error(error.message);
+  return (data ?? []) as ChallengeAlert[];
+}
+
+export async function listUnreadAlerts(): Promise<ChallengeAlert[]> {
+  return check(
+    await supabase
+      .from('challenge_alerts')
+      .select('id, challenge_id, period_start, level, spent, created_at, read_at')
+      .is('read_at', null)
+      .order('created_at', { ascending: false })
+      .limit(20)
+      .returns<ChallengeAlert[]>()
+  );
+}
+
+export async function markAlertsRead(ids: string[]): Promise<void> {
+  if (!ids.length) return;
+  checkWrite(await supabase.from('challenge_alerts').update({ read_at: new Date().toISOString() }).in('id', ids));
+}
+
+/** Demande l'envoi de l'email d'alerte (fonction serveur Supabase « challenge-alert-email »). */
+export async function requestAlertEmail(alertId: string): Promise<void> {
+  const { error } = await supabase.functions.invoke('challenge-alert-email', { body: { alertId } });
+  if (error) throw new Error(error.message);
 }
 
 // ---------- Taux de change ----------

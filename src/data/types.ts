@@ -66,6 +66,25 @@ export type NewTransaction = Omit<Transaction, 'id' | 'occurred_at' | 'note'> & 
   note?: string | null;
 };
 
+export type { Challenge } from '@/domain/challenges';
+
+export type NewChallenge = {
+  name: string;
+  period: 'week' | 'month' | 'quarter';
+  amount: number;
+  category_id: string | null;
+};
+
+export type ChallengeAlert = {
+  id: string;
+  challenge_id: string;
+  period_start: string;
+  level: 'warning' | 'exceeded';
+  spent: number;
+  created_at: string;
+  read_at: string | null;
+};
+
 /** Opération importée (relevé ou notification), prête à être insérée. */
 export type ImportedTransaction = {
   type: 'income' | 'expense';

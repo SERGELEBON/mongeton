@@ -27,6 +27,11 @@ export default function TabsLayout() {
         tabBarStyle: { backgroundColor: c.card, borderTopColor: c.border },
       }}>
       <Tabs.Screen name="index" options={{ title: t.tabs.home, tabBarIcon: icon('home', 'home-outline') }} />
+      <Tabs.Screen name="stats" options={{ title: t.tabs.stats, tabBarIcon: icon('stats-chart', 'stats-chart-outline') }} />
+      <Tabs.Screen
+        name="challenge"
+        options={{ title: t.tabs.challenge, tabBarIcon: icon('trophy', 'trophy-outline') }}
+      />
       <Tabs.Screen
         name="accounts"
         options={{ title: t.tabs.accounts, tabBarIcon: icon('wallet', 'wallet-outline') }}

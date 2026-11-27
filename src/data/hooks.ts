@@ -7,7 +7,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/providers/auth';
 
 import * as repo from './repository';
-import type { NewAccount, NewTransaction, Profile, ProfilePatch } from './types';
+import type { NewAccount, NewChallenge, NewTransaction, Profile, ProfilePatch } from './types';
 
 export const keys = {
   profile: ['profile'] as const,
@@ -15,6 +15,8 @@ export const keys = {
   categories: ['categories'] as const,
   transactions: ['transactions'] as const,
   rates: ['rates'] as const,
+  challenges: ['challenges'] as const,
+  alerts: ['challenge-alerts'] as const,
 };
 
 export const useProfile = (options: { enabled?: boolean } = {}) =>
@@ -23,6 +25,45 @@ export const useAccounts = () => useQuery({ queryKey: keys.accounts, queryFn: re
 export const useCategories = () => useQuery({ queryKey: keys.categories, queryFn: repo.listCategories });
 export const useTransactions = () =>
   useQuery({ queryKey: keys.transactions, queryFn: () => repo.listTransactions() });
+/** Opérations depuis le début de la période précédente du trimestre (stats + challenges). */
+export const useTransactionsSince = (fromIso: string) =>
+  useQuery({ queryKey: [...keys.transactions, 'since', fromIso], queryFn: () => repo.listTransactionsSince(fromIso) });
+
+export const useChallenges = () => useQuery({ queryKey: keys.challenges, queryFn: repo.listChallenges });
+export const useUnreadAlerts = () => useQuery({ queryKey: keys.alerts, queryFn: repo.listUnreadAlerts });
+
+export function useCreateChallenge() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: NewChallenge) => repo.createChallenge(input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: keys.challenges }),
+  });
+}
+
+export function useToggleChallenge() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, active }: { id: string; active: boolean }) => repo.setChallengeActive(id, active),
+    onSuccess: () => qc.invalidateQueries({ queryKey: keys.challenges }),
+  });
+}
+
+export function useDeleteChallenge() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: repo.deleteChallenge,
+    onSuccess: () => qc.invalidateQueries({ queryKey: keys.challenges }),
+  });
+}
+
+export function useMarkAlertsRead() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: repo.markAlertsRead,
+    onSuccess: () => qc.invalidateQueries({ queryKey: keys.alerts }),
+  });
+}
+
 export const useRates = () =>
   useQuery({ queryKey: keys.rates, queryFn: repo.getRates, staleTime: 60 * 60 * 1000 });
 
