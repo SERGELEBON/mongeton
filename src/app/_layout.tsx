@@ -13,6 +13,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { Colors, Fonts } from '@/constants/theme';
 import { ChallengeEngine } from '@/features/challenge/challenge-engine';
+import { UpdatePrompt } from '@/features/update/update-prompt';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useI18n } from '@/i18n';
 import { AuthProvider, useAuth } from '@/providers/auth';
@@ -42,6 +43,7 @@ function RootNavigator({ fontsReady }: { fontsReady: boolean }) {
     <>
       <ProfileSync />
       {session ? <ChallengeEngine /> : null}
+      <UpdatePrompt />
       <Stack
         screenOptions={{
           headerShown: false,

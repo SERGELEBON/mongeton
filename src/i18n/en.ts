@@ -212,4 +212,11 @@ export const en: Dictionary = {
   languages: { fr: 'Français', en: 'English' },
   countries: { CI: 'Côte d’Ivoire', GH: 'Ghana', OTHER: 'Other' },
   providers: { cash: 'Cash', bank: 'Bank' },
+  update: {
+    title: 'New version available',
+    body: 'Mongeton {version} is ready to install.',
+    hint: 'Your accounts and transactions are kept.',
+    install: 'Update',
+    later: 'Later',
+  },
 };

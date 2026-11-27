@@ -211,6 +211,13 @@ export const fr = {
   languages: { fr: 'Français', en: 'English' },
   countries: { CI: 'Côte d’Ivoire', GH: 'Ghana', OTHER: 'Autre' },
   providers: { cash: 'Espèces', bank: 'Banque' },
+  update: {
+    title: 'Nouvelle version disponible',
+    body: 'Mongeton {version} est prête à être installée.',
+    hint: 'Tes comptes et transactions sont conservés.',
+    install: 'Mettre à jour',
+    later: 'Plus tard',
+  },
 };
 
 type Widen<T> = { [K in keyof T]: T[K] extends string ? string : Widen<T[K]> };
