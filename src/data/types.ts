@@ -10,6 +10,7 @@ export type Profile = {
   language: Language;
   religious_enabled: boolean;
   country: CountryCode | null;
+  telegram_chat_id: number | null;
 };
 
 export type ProfilePatch = Partial<Pick<Profile, 'base_currency' | 'language' | 'religious_enabled' | 'country'>>;

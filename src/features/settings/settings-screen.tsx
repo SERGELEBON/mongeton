@@ -8,6 +8,7 @@ import { useProfile, useRates, useUpdateProfile } from '@/data/hooks';
 import { COUNTRIES, COUNTRY_CODES, type CountryCode } from '@/domain/countries';
 import { CURRENCY_CODES, DEFAULT_CURRENCY, type CurrencyCode, type Language } from '@/domain/currency';
 import { DetectionCard } from '@/features/import/import-entry';
+import { TelegramCard } from '@/features/settings/telegram-card';
 import { useTheme } from '@/hooks/use-theme';
 import { useI18n } from '@/i18n';
 import { supabase } from '@/lib/supabase';
@@ -90,6 +91,8 @@ export function SettingsScreen() {
       </Card>
 
       <DetectionCard />
+
+      <TelegramCard />
 
       <Card>
         <AppText variant="heading">{t.settings.rates}</AppText>

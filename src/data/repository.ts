@@ -45,13 +45,25 @@ export async function getProfile(): Promise<Profile> {
   return check(
     await supabase
       .from('profiles')
-      .select('id, display_name, base_currency, language, religious_enabled, country')
+      .select('id, display_name, base_currency, language, religious_enabled, country, telegram_chat_id')
       .single<Profile>()
   );
 }
 
 export async function updateProfile(userId: string, patch: ProfilePatch): Promise<void> {
   checkWrite(await supabase.from('profiles').update(patch).eq('id', userId));
+}
+
+/** Code à usage unique (30 min) pour relier Telegram via le bot. */
+export async function createTelegramLinkCode(): Promise<string> {
+  const { data, error } = await supabase.rpc('create_telegram_link_code');
+  if (error) throw new Error(error.message);
+  return data as string;
+}
+
+export async function unlinkTelegram(): Promise<void> {
+  const { error } = await supabase.rpc('unlink_telegram');
+  if (error) throw new Error(error.message);
 }
 
 // ---------- Comptes ----------

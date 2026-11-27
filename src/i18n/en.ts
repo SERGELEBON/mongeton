@@ -156,6 +156,15 @@ export const en: Dictionary = {
     notificationsOff: 'Turn on notifications to be alerted at 80% of the budget.',
     enableNotifications: 'Turn on notifications',
   },
+  telegram: {
+    title: 'Telegram alerts',
+    hint: 'Also get your challenge alerts as a private Telegram message (free).',
+    linked: 'Linked',
+    notLinked: 'Not linked',
+    link: 'Link Telegram',
+    unlink: 'Unlink',
+    waiting: 'In Telegram, tap “Start”, then come back here.',
+  },
   imports: {
     title: 'Operations to review',
     statementButton: 'Import a statement (CSV)',

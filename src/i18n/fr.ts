@@ -155,6 +155,15 @@ export const fr = {
     notificationsOff: 'Active les notifications pour être prévenu à 80 % du budget.',
     enableNotifications: 'Activer les notifications',
   },
+  telegram: {
+    title: 'Alertes Telegram',
+    hint: 'Reçois aussi les alertes de tes challenges en message privé Telegram (gratuit).',
+    linked: 'Relié',
+    notLinked: 'Non relié',
+    link: 'Relier Telegram',
+    unlink: 'Délier',
+    waiting: 'Dans Telegram, appuie sur « Démarrer », puis reviens ici.',
+  },
   imports: {
     title: 'Opérations à valider',
     statementButton: 'Importer un relevé (CSV)',

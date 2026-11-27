@@ -1,4 +1,5 @@
-// Supabase Edge Function — envoie l'email d'alerte d'un challenge (80 % ou budget dépassé).
+// Supabase Edge Function — envoie l'alerte d'un challenge (80 % ou budget dépassé)
+// par email (Resend) et/ou message Telegram, selon ce qui est configuré.
 //
 // Appelée par l'app avec la session de l'utilisateur : { alertId }.
 // Toutes les lectures passent par le client « utilisateur » (RLS) : aucune clé admin.
@@ -9,6 +10,8 @@
 //   MAIL_FROM       expéditeur, ex. "Mongeton <alertes@ton-domaine.com>"
 //                   (sans domaine vérifié : "Mongeton <onboarding@resend.dev>", envoi limité
 //                    à l'adresse du compte Resend)
+//   TELEGRAM_BOT_TOKEN  (facultatif) jeton du bot : envoie aussi l'alerte sur Telegram
+//                       aux utilisateurs qui ont relié leur compte
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { withSupabase } from 'jsr:@supabase/server@^1';
 
@@ -31,7 +34,8 @@ export default {
 
     const resendKey = Deno.env.get('RESEND_API_KEY');
     const from = Deno.env.get('MAIL_FROM') ?? 'Mongeton <onboarding@resend.dev>';
-    if (!resendKey) return Response.json({ error: 'email_not_configured' }, { status: 503 });
+    const telegramToken = Deno.env.get('TELEGRAM_BOT_TOKEN');
+    if (!resendKey && !telegramToken) return Response.json({ error: 'not_configured' }, { status: 503 });
 
     const { alertId } = await req.json().catch(() => ({}));
     if (typeof alertId !== 'string') return Response.json({ error: 'invalid_body' }, { status: 400 });
@@ -54,7 +58,10 @@ export default {
     if (claimError) return Response.json({ error: 'claim_failed' }, { status: 500 });
     if (!claimed) return Response.json({ status: 'already_sent' });
 
-    const { data: profile } = await supabase.from('profiles').select('base_currency, language').single();
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('base_currency, language, telegram_chat_id')
+      .single();
     const lang = profile?.language === 'en' ? 'en' : 'fr';
     const currency = profile?.base_currency ?? 'XOF';
     const challenge = alert.challenges as unknown as { name: string; amount: number };
@@ -100,16 +107,40 @@ export default {
   <p style="font-size:12px;color:#5F6B63;margin-top:16px">${t.footer}</p>
 </td></tr></table></body></html>`;
 
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from, to: [email], subject: t.subject, html }),
-    });
-    if (!res.ok) {
-      // Échec d'envoi : on libère la réservation pour pouvoir réessayer.
-      await supabase.rpc('release_alert_email', { p_alert_id: alertId });
-      return Response.json({ error: 'send_failed', detail: await res.text() }, { status: 502 });
+    const sent: string[] = [];
+    const failures: string[] = [];
+
+    if (resendKey) {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ from, to: [email], subject: t.subject, html }),
+      });
+      if (res.ok) sent.push('email');
+      else failures.push(`email: ${await res.text()}`);
     }
-    return Response.json({ status: 'sent' });
+
+    if (telegramToken && profile?.telegram_chat_id) {
+      // Le corps est déjà échappé (nom du challenge) : on ne garde que le gras, autorisé par Telegram.
+      const plain = t.body;
+      const res = await fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: profile.telegram_chat_id,
+          text: `${exceeded ? '🔴' : '🟠'} <b>${escapeHtml(t.title)}</b>\n${plain}`,
+          parse_mode: 'HTML',
+        }),
+      });
+      if (res.ok) sent.push('telegram');
+      else failures.push(`telegram: ${await res.text()}`);
+    }
+
+    if (!sent.length) {
+      // Rien n'est parti : on libère la réservation pour pouvoir réessayer.
+      await supabase.rpc('release_alert_email', { p_alert_id: alertId });
+      return Response.json({ error: 'send_failed', failures }, { status: 502 });
+    }
+    return Response.json({ status: 'sent', channels: sent, failures });
   }),
 };
