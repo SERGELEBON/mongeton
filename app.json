@@ -2,7 +2,7 @@
   "expo": {
     "name": "Mongeton",
     "slug": "mongeton",
-    "version": "1.3.0",
+    "version": "1.4.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "mongeton",
@@ -21,7 +21,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.mongeton.app",
-      "versionCode": 4
+      "versionCode": 5
     },
     "web": {
       "output": "single",
