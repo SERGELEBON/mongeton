@@ -67,9 +67,20 @@ jobs:
       - name: Restaurer la clé de signature
         env:
           KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          MONGETON_KEYSTORE_PASSWORD: ${{ secrets.MONGETON_KEYSTORE_PASSWORD }}
+          MONGETON_KEY_PASSWORD: ${{ secrets.MONGETON_KEY_PASSWORD }}
+          MONGETON_KEY_ALIAS: ${{ vars.MONGETON_KEY_ALIAS || 'mongeton' }}
         run: |
           echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/mongeton-release.jks"
           echo "MONGETON_KEYSTORE_FILE=$RUNNER_TEMP/mongeton-release.jks" >> "$GITHUB_ENV"
+          # Vérifie clé + mots de passe tout de suite (échec en secondes plutôt qu'après 20 min de build).
+          if ! keytool -list -keystore "$RUNNER_TEMP/mongeton-release.jks" -storepass "$MONGETON_KEYSTORE_PASSWORD" -alias "$MONGETON_KEY_ALIAS" >/dev/null 2>&1; then
+            echo "::error::MONGETON_KEYSTORE_PASSWORD ne correspond pas à ANDROID_KEYSTORE_BASE64 (ou alias '$MONGETON_KEY_ALIAS' absent)."
+            exit 1
+          fi
+          if [ "$MONGETON_KEY_PASSWORD" != "$MONGETON_KEYSTORE_PASSWORD" ]; then
+            echo "::warning::MONGETON_KEY_PASSWORD diffère de MONGETON_KEYSTORE_PASSWORD (ils sont identiques pour la clé Mongeton)."
+          fi
 
       - name: Générer le projet Android
         run: npx expo prebuild --platform android --no-install
