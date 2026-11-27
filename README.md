@@ -75,13 +75,16 @@ tests → APK signé → **GitHub Release**. Sur le téléphone, l'app gratuite
 
 ### Publier une nouvelle version
 
+Une seule commande (vérifie types / lint / tests, incrémente `version` et `versionCode`,
+commit, tag et push) :
+
 ```bash
-# 1. Incrémenter "version" et "android.versionCode" dans app.json
-# 2. Commit puis tag
-git commit -am "Mongeton 1.3.0"
-git tag v1.3.0
-git push && git push --tags
+npm run release            # correctif : 1.2.0 -> 1.2.1
+npm run release -- minor   # nouveautés : 1.2.0 -> 1.3.0
+npm run release -- major   # 1.2.0 -> 2.0.0
 ```
+
+GitHub Actions construit alors l'APK signé et publie la Release ; Obtainium la propose aux téléphones.
 
 ### Installer et recevoir les mises à jour (téléphone Android)
 
